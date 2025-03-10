@@ -1,6 +1,6 @@
 import random
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType, ArrayType
+from pyspark.sql.types import StructType, StructField, StringType, ArrayType, MapType, FloatType
 from faker import Faker
 
 # Initialize Faker
@@ -38,12 +38,20 @@ item_df.show(10, truncate=False)
 schema = StructType([
     StructField("user_id", StringType(), False),
     StructField("watched_item_list", ArrayType(StringType()), False),
-    StructField("exposed_item_list", ArrayType(StringType()), False)
+    StructField("exposed_item_list", ArrayType(StringType()), False), 
+    StructField("liked_item_list", ArrayType(StringType()), True),
+    StructField("completion_item_list", MapType(StringType(), FloatType()), False)
 ])
 
 # Create a list of dummy data
 num_users = 1000  # Number of users
-dummy_data = [(fake.uuid4(), [str(random.randint(0, item_num)) for _ in range(random.randint(1, 5))], [str(random.randint(0, item_num)) for _ in range(random.randint(1, 5))]) for _ in range(num_users)]
+dummy_data = []
+for _ in range(num_users):
+    watched_items = [str(random.randint(0, item_num)) for _ in range(random.randint(1, 5))]
+    exposed_items = [str(random.randint(0, item_num)) for _ in range(random.randint(1, 5))]
+    liked_items = [item for item in watched_items if random.random() < 0.3]
+    completion_items = {item: random.choice([0.2, 0.5, 0.8, 1.0]) for item in watched_items}
+    dummy_data.append((fake.uuid4(), watched_items, exposed_items, liked_items, completion_items))
 
 # Create a PySpark DataFrame
 user_df = spark.createDataFrame(dummy_data, schema=schema)
