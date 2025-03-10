@@ -37,8 +37,8 @@ def top_among_history_positive(precomputed_res: dict, item_id, device_id):
         
 
         combined_history = {
+            "watched" : user_history.get("watched_item_list", []),
             "liked": user_history.get("liked_item_list", []),
-
             # extracting only the items with positive watch signal aka 80%+ watchtime 
             "completed": [k for k, v in user_history.get("completion_item_list", {}).items() if v >=0.8]
         }
@@ -49,11 +49,16 @@ def top_among_history_positive(precomputed_res: dict, item_id, device_id):
                     if item_id in precomputed_res["top_item_each_source_dict"][history_item]:
                         item_name = precomputed_res['item_name'].get(history_item, "Unknown Item Name")
                         if history_type == "liked":
-                            messages.append(f"This item is popular among users who liked '{item_name}'")
+                            return (f"Top 10 in Users who Liked '{item_name}'")
+                        elif history_type =="completed": 
+                            return (f"Top 10 in Users who Completed '{item_name}'")
+                        
+                        # if no positive signals, return default explanation message
                         else: 
-                            messages.append(f"This item is popular among users who completed '{item_name}'")
+                            return (f"Top 10 in Users who Watched '{item_name}'")
+
     
-    return " ".join(messages) if messages else None
+    return None 
 
 
 
